@@ -19,12 +19,18 @@ void PhysicalMemory::read(uint frame_number, uint offset, char * data)
 {
     //TP2_IFT2245_TO_DO
 
+    data = mFrames[frame_number].read(offset, data);
+
     //TP2_IFT2245_END_TO_DO
 }
 
 void PhysicalMemory::write(uint frame_number, uint offset, char * data)
 {
     //TP2_IFT2245_TO_DO
+
+    Frame frame = mFrames[frame_number];
+    frame.write(offset, data);
+    //frame.setModified();
 
     //TP2_IFT2245_END_TO_DO
 }
@@ -33,6 +39,11 @@ uint PhysicalMemory::insertFrameInNextFreeSpace(uint page_number, QByteArray *fr
 {
     //TP2_IFT2245_TO_DO
     //If there is an empty frame
+
+    Frame frame = mFrames[mNextEmptyFrame];
+    frame.setFrameData(frame_bytes);
+    frame.setPageNumber(page_number);
+    mNextEmptyFrame += 1;
 
     //TP2_IFT2245_END_TO_DO
 }
