@@ -7,8 +7,8 @@ float VirtualMemoryManager::PAGEFOUND = 0;
 
 VirtualMemoryManager::VirtualMemoryManager(QString str, uint nb_pages, uint page_size, uint nb_frames):
     TObject(str),mNbPages(nb_pages),mPageSize(page_size),mNbFrames(nb_frames)/*,
-    mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
-    dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
+      mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
+      dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
 {
     cout<<"Virtual Memory Initialization"<<endl;
 
@@ -58,7 +58,7 @@ void VirtualMemoryManager::outputToLog( char* data )
     cout << "Read Data: " << *data << endl;
     QByteArray page;
     page.resize(1);
-        page[0]=*data;
+    page[0]=*data;
     mLogFile->write(data, 1);
 
 }
@@ -66,6 +66,14 @@ void VirtualMemoryManager::outputToLog( char* data )
 void VirtualMemoryManager::saveRAMToDisk()
 {
     //TP2_IFT2245_TO_DO
+
+    for (uint frame_number = 0; frame_number < mNbFrames; frame_number++) {
+        if (mPhysicalMemory->isFrameModified(frame_number)) {
+            uint page_number = mPhysicalMemory->pageNumber(frame_number);
+            QByteArray data = mPhysicalMemory->frame(frame_number);
+            mHardDrive->write(page_number, data);
+        }
+    }
 
     //TP2_IFT2245_END_TO_DO
 }
@@ -75,6 +83,9 @@ void VirtualMemoryManager::read(uint page_number, uint offset, char *data)
 {
     cout<<"Read Operation : ";
     //TP2_IFT2245_TO_DO
+
+    uint frame_number = fetchPage(page_number);
+    mPhysicalMemory->read(frame_number, offset, data);
 
     //TP2_IFT2245_END_TO_DO
 
@@ -86,6 +97,9 @@ void VirtualMemoryManager::write(uint page_number, uint offset, char *data)
 {
     cout<<"Write Operation : ";
     //TP2_IFT2245_TO_DO
+
+    uint frame_number = fetchPage(page_number);
+    mPhysicalMemory->write(frame_number, offset, data);
 
     //TP2_IFT2245_END_TO_DO
 }
