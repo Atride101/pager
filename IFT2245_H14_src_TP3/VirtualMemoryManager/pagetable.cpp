@@ -15,9 +15,11 @@ uint PageTable::nbPages()const
     return mNbPages;
 }
 
-void PageTable::insertPage(const Page &page)
+void PageTable::insertPage(uint page_number, const Page &page)
 {
     //TP2_IFT2245_TO_DO
+
+    mPages[page_number] = page;
 
     //TP2_IFT2245_END_TO_DO
 }
@@ -25,7 +27,16 @@ void PageTable::insertPage(const Page &page)
 bool PageTable::frameIndex(uint page_number, int& frame_index)
 {
     //TP2_IFT2245_TO_DO
+
+    Page page = mPages[page_number];
+
+    if (page.isValid()) {
+        frame_index = page.frameIndex();
+        return true;
+    }
+
     return false;
+
     //TP2_IFT2245_END_TO_DO
 }
 

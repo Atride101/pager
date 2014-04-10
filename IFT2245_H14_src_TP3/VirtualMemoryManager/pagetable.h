@@ -21,7 +21,7 @@ public:
      * @param page_number
      * @param page
      */
-    void insertPage(const Page &page);
+    void insertPage(uint page_number, const Page &page);
 
     //TP2_IFT2245_TO_DO
     /**
