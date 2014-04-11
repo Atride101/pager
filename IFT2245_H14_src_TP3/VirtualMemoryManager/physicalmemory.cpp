@@ -30,7 +30,7 @@ void PhysicalMemory::write(uint frame_number, uint offset, char * data)
 
     Frame frame = mFrames[frame_number];
     frame.write(offset, data);
-    //frame.setModified();
+    frame.setModified();
 
     //TP2_IFT2245_END_TO_DO
 }
