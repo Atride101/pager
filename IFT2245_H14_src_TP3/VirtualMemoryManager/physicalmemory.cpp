@@ -40,11 +40,19 @@ uint PhysicalMemory::insertFrameInNextFreeSpace(uint page_number, QByteArray *fr
     //If there is an empty frame
 
     if (hasEmptyFrame()) {
-        mFrames[mNextEmptyFrame].setFrameData(frame_bytes);
-        mFrames[mNextEmptyFrame].setPageNumber(page_number);
+        insertFrame(mNextEmptyFrame, page_number, frame_bytes);
         mNextEmptyFrame += 1;
         return mNextEmptyFrame - 1;
     }
+
+    // Si la memoire est pleine, on retire la premiere frame (FIFO) et on decale
+    // les autres frames, pour inserer la nouvelle page en derniere position
+    for (uint frame = 0; frame < mNbFrames - 1; frame++) {
+        mFrames[frame] = mFrames[frame + 1];
+    }
+
+    insertFrame(mNbFrames - 1, page_number, frame_bytes);
+    return mNbFrames - 1;
 
     //TP2_IFT2245_END_TO_DO
 }
@@ -54,6 +62,9 @@ void PhysicalMemory::insertFrame(uint frame_number, uint page_number, QByteArray
     //TP2_IFT2245_TO_DO
     //The frame is not empty but the user should already
     //have saved the data.
+
+    mFrames[frame_number].setFrameData(frame_bytes);
+    mFrames[frame_number].setPageNumber(page_number);
 
     //TP2_IFT2245_END_TO_DO
 }
