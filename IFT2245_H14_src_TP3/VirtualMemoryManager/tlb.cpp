@@ -13,6 +13,15 @@ void TLB::addTLBEntry(TLB::TLB_entry new_tlb_entry)
 {
     //TP2_IFT2245_TO_DO
 
+    if (_previousEntry < 16) {
+        _TLBArray[_previousEntry] = new_tlb_entry;
+    } else {
+        int entry = _previousEntry % 16;
+        _TLBArray[entry] = new_tlb_entry;
+    }
+
+    _previousEntry += 1;
+
     //TP2_IFT2245_END_TO_DO
 }
 
