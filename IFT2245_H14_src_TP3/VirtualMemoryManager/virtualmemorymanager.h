@@ -25,7 +25,8 @@ public:
      * @param nb_frames
      * NOTE : DO NOT CHANGE THESE VALUES 512,256,256 OR IT COULD CRASH THE PROGRAM
      */
-    VirtualMemoryManager(QString str = "Virtual Memory Manager", uint nb_pages = 512, uint page_size = 256, uint nb_frames = 256);
+    VirtualMemoryManager(QString str = "Virtual Memory Manager", uint nb_pages = 512,
+                         uint page_size = 256, uint nb_frames = 256, uint first_frame = 0);
     ~VirtualMemoryManager();
 
     //TP2_IFT2245_TO_DO
@@ -84,6 +85,7 @@ private:
     uint mNbPages;
     uint mPageSize;
     uint mNbFrames;
+    uint firstFrame;
 
     HardDrive * mHardDrive;
     PageTable * mPageTable;

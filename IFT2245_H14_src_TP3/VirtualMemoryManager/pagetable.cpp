@@ -28,10 +28,8 @@ bool PageTable::frameIndex(uint page_number, int& frame_index)
 {
     //TP2_IFT2245_TO_DO
 
-    Page page = mPages[page_number];
-
-    if (page.isValid()) {
-        frame_index = page.frameIndex();
+    if (mPages[page_number].isValid()) {
+        frame_index = mPages[page_number].frameIndex();
         return true;
     }
 
