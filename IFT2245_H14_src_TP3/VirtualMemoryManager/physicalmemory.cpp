@@ -48,7 +48,8 @@ uint PhysicalMemory::insertFrameInNextFreeSpace(uint page_number, QByteArray *fr
     // Si la memoire est pleine, on retire la premiere frame (FIFO) et on decale
     // les autres frames, pour inserer la nouvelle page en derniere position
     for (uint frame = 0; frame < mNbFrames - 1; frame++) {
-        mFrames[frame] = mFrames[frame + 1];
+        mFrames[frame].setFrameData(mFrames[frame + 1].frameData());
+        mFrames[frame].setPageNumber(mFrames[frame + 1].pageNumber());
     }
 
     insertFrame(mNbFrames - 1, page_number, frame_bytes);
