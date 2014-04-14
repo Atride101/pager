@@ -26,7 +26,16 @@ void TLB::removeEntryFromTLB(int page_number)
 bool TLB::findPage(int page_number, int& frame_index)
 {
     //TP2_IFT2245_TO_DO
+
+    for (int entry = 0; entry < 16; entry++) {
+        if (_TLBArray[entry].pageNumber == page_number) {
+            frame_index = _TLBArray[entry].frameNumber;
+            return true;
+        }
+    }
+
     return false;
+
     //TP2_IFT2245_END_TO_DO
 }
 

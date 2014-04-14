@@ -7,8 +7,8 @@ float VirtualMemoryManager::PAGEFOUND = 0;
 
 VirtualMemoryManager::VirtualMemoryManager(QString str, uint nb_pages, uint page_size, uint nb_frames):
     TObject(str),mNbPages(nb_pages),mPageSize(page_size),mNbFrames(nb_frames)/*,
-            mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
-            dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
+              mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
+              dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
 {
     cout<<"Virtual Memory Initialization"<<endl;
 
@@ -70,8 +70,7 @@ void VirtualMemoryManager::saveRAMToDisk()
     for (uint frame_number = 0; frame_number < mNbFrames; frame_number++) {
         if (mPhysicalMemory->isFrameModified(frame_number)) {
             uint page_number = mPhysicalMemory->pageNumber(frame_number);
-            QByteArray * bytes = mPhysicalMemory->frame(frame_number);
-            mHardDrive->write(page_number, bytes);
+            mHardDrive->write(page_number, mPhysicalMemory->frame(frame_number));
             mPhysicalMemory->setUnModified(frame_number);
         }
     }
@@ -120,16 +119,15 @@ uint VirtualMemoryManager::fetchPage(uint page_number)
     else if (mPageTable->frameIndex(page_number, frame_number)) {
         TLBMISS += 1;
         PAGEFOUND += 1;
+        mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
         return (uint) frame_number;
     }
-    else {
-        TLBMISS += 1;
-        PAGEFAULT += 1;
-        QByteArray * data = mHardDrive->read(page_number);
-        return mPhysicalMemory->insertFrameInNextFreeSpace(page_number, data);
-    }
 
-    return 0;
+    TLBMISS += 1;
+    PAGEFAULT += 1;
+    mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
+    return mPhysicalMemory->insertFrameInNextFreeSpace(page_number, mHardDrive->read(page_number));
+
     //TP2_IFT2245_END_TO_DO
 }
 
