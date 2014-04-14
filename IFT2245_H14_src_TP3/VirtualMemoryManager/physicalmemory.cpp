@@ -19,7 +19,7 @@ void PhysicalMemory::read(uint frame_number, uint offset, char * data)
 {
     //TP2_IFT2245_TO_DO
 
-    data = mFrames[frame_number].read(offset, data);
+    mFrames[frame_number].read(offset, data);
 
     //TP2_IFT2245_END_TO_DO
 }
@@ -44,6 +44,7 @@ uint PhysicalMemory::insertFrameInNextFreeSpace(uint page_number, QByteArray *fr
     frame.setFrameData(frame_bytes);
     frame.setPageNumber(page_number);
     mNextEmptyFrame += 1;
+    return mNextEmptyFrame;
 
     //TP2_IFT2245_END_TO_DO
 }

@@ -70,7 +70,7 @@ void VirtualMemoryManager::saveRAMToDisk()
     for (uint frame_number = 0; frame_number < mNbFrames; frame_number++) {
         if (mPhysicalMemory->isFrameModified(frame_number)) {
             uint page_number = mPhysicalMemory->pageNumber(frame_number);
-            QByteArray bytes = mPhysicalMemory->frame(frame_number);
+            QByteArray * bytes = mPhysicalMemory->frame(frame_number);
             mHardDrive->write(page_number, bytes);
             mPhysicalMemory->setUnModified(frame_number);
         }
