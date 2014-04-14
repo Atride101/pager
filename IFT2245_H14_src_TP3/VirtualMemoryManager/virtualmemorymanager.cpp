@@ -7,8 +7,8 @@ float VirtualMemoryManager::PAGEFOUND = 0;
 
 VirtualMemoryManager::VirtualMemoryManager(QString str, uint nb_pages, uint page_size, uint nb_frames, uint first_frame):
     TObject(str),mNbPages(nb_pages),mPageSize(page_size),mNbFrames(nb_frames),firstFrame(first_frame)/*,
-                  mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
-                  dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
+                    mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
+                    dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
 {
     cout<<"Virtual Memory Initialization"<<endl;
 
@@ -119,32 +119,48 @@ uint VirtualMemoryManager::fetchPage(uint page_number)
         TLBHIT += 1;
         return (uint) frame_number;
     }
+
     // Si la page se trouve dans le PageTable
     else if (mPageTable->frameIndex(page_number, frame_number)) {
         TLBMISS += 1;
         PAGEFOUND += 1;
+
+        // update de la TLB
         mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
         return (uint) frame_number;
     }
+
     // Si la page n'est pas chargee et que la memoire physique n'est pas pleine
     else if (mPhysicalMemory->hasEmptyFrame()) {
         TLBMISS += 1;
         PAGEFAULT += 1;
+
+        // insertion de la page dans une frame libre
+        frame_number = mPhysicalMemory->insertFrameInNextFreeSpace(page_number, mHardDrive->read(page_number));
+
+        // update de la TLB et de la PageTable
         mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
-        return mPhysicalMemory->insertFrameInNextFreeSpace(page_number, mHardDrive->read(page_number));
+        mPageTable->insertPage(page_number, Page("new page", page_number_int, mPageSize, frame_number, true));
+
+        return frame_number;
     }
 
-    // Si la page n'est pas chargee et que la memoire physique est pleine
-    // On remplace la frame la plus vieille (FIFO) en remplacant d'abord la
-    // premiere frame, puis la deuxieme, etc... puis une fois rendu a la
-    // derniere frame, on recommence a la premiere
+    // Si la page n'est pas chargee et que la memoire physique est pleine,
+    // on enleve une frame de la memoire pour faire de la place selon une file FIFO
     TLBMISS += 1;
     PAGEFAULT += 1;
     frame_number = firstFrame % mNbFrames;
+
+    // invalidation dans le PageTable de la page associee au frame enleve
     mPageTable->setInvalid(mPhysicalMemory->pageNumber(frame_number));
+
+    // insertion de la page par dessus la plus vieille frame
     mPhysicalMemory->insertFrame((uint) frame_number, page_number, mHardDrive->read(page_number));
+
+    // update de la TLB et de la PageTable
     mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
     mPageTable->insertPage(page_number, Page("new page", page_number_int, mPageSize, frame_number, true));
+
     firstFrame += 1;
     return frame_number;
 
