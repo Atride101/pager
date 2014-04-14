@@ -40,11 +40,12 @@ uint PhysicalMemory::insertFrameInNextFreeSpace(uint page_number, QByteArray *fr
     //TP2_IFT2245_TO_DO
     //If there is an empty frame
 
-    Frame frame = mFrames[mNextEmptyFrame];
-    frame.setFrameData(frame_bytes);
-    frame.setPageNumber(page_number);
-    mNextEmptyFrame += 1;
-    return mNextEmptyFrame;
+    if (hasEmptyFrame()) {
+        mFrames[mNextEmptyFrame].setFrameData(frame_bytes);
+        mFrames[mNextEmptyFrame].setPageNumber(page_number);
+        mNextEmptyFrame += 1;
+        return mNextEmptyFrame - 1;
+    }
 
     //TP2_IFT2245_END_TO_DO
 }
