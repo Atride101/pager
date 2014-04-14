@@ -7,8 +7,8 @@ float VirtualMemoryManager::PAGEFOUND = 0;
 
 VirtualMemoryManager::VirtualMemoryManager(QString str, uint nb_pages, uint page_size, uint nb_frames, uint first_frame):
     TObject(str),mNbPages(nb_pages),mPageSize(page_size),mNbFrames(nb_frames),firstFrame(first_frame)/*,
-                    mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
-                    dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
+                      mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
+                      dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
 {
     cout<<"Virtual Memory Initialization"<<endl;
 
@@ -71,7 +71,6 @@ void VirtualMemoryManager::saveRAMToDisk()
         if (mPhysicalMemory->isFrameModified(frame_number)) {
             uint page_number = mPhysicalMemory->pageNumber(frame_number);
             mHardDrive->write(page_number, mPhysicalMemory->frame(frame_number));
-            mPhysicalMemory->setUnModified(frame_number);
         }
     }
 
@@ -101,8 +100,9 @@ void VirtualMemoryManager::write(uint page_number, uint offset, char *data)
     int page_number_int = (int) page_number;
     uint frame_number = fetchPage(page_number);
     mPhysicalMemory->write(frame_number, offset, data);
+    mPhysicalMemory->setModified(frame_number);
     mPageTable->insertPage(page_number, Page("new page", page_number_int, mPageSize, frame_number, true));
-    saveRAMToDisk();
+    mHardDrive->write(page_number, mPhysicalMemory->frame(frame_number));
 
     //TP2_IFT2245_END_TO_DO
 }
