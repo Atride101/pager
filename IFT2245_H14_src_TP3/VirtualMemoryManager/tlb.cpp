@@ -9,14 +9,28 @@ TLB::~TLB()
 {
 }
 
-void TLB::addTLBEntry(TLB::TLB_entry new_tlb_entry)
+void TLB::addTLBEntry(TLB::TLB_entry new_tlb_entry, bool fifo)
 {
     //TP2_IFT2245_TO_DO
 
     if (_previousEntry < 16) {
         _TLBArray[_previousEntry] = new_tlb_entry;
-    } else {
+    }
+    else if (fifo == true) {
         int entry = _previousEntry % 16;
+        _TLBArray[entry] = new_tlb_entry;
+    }
+    else if (fifo == false) {
+        int entry = 0;
+        int min = _usageFrequency[0];
+
+        for (int i = 1; i < 16; i++) {
+            if (min > _usageFrequency[i]){
+                entry = i;
+                min = _usageFrequency[i];
+            }
+        }
+
         _TLBArray[entry] = new_tlb_entry;
     }
 
@@ -39,6 +53,7 @@ bool TLB::findPage(int page_number, int& frame_index)
     for (int entry = 0; entry < 16; entry++) {
         if (_TLBArray[entry].pageNumber == page_number) {
             frame_index = _TLBArray[entry].frameNumber;
+            _usageFrequency[entry]++;
             return true;
         }
     }

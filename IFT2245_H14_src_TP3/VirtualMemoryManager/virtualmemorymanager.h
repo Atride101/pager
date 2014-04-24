@@ -87,6 +87,8 @@ private:
     uint mNbFrames;
     uint firstFrame;
 
+    int _usageFrequency[256];
+
     HardDrive * mHardDrive;
     PageTable * mPageTable;
     PhysicalMemory * mPhysicalMemory;

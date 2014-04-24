@@ -5,10 +5,14 @@ float VirtualMemoryManager::TLBMISS = 0;
 float VirtualMemoryManager::PAGEFAULT = 0;
 float VirtualMemoryManager::PAGEFOUND = 0;
 
+// Cette valeur determine si la strategie de remplacement des frames dans la memoire physique
+// et dans le TLB se fait par FIFO ou Least Frequently Used
+bool fifo = false;
+
 VirtualMemoryManager::VirtualMemoryManager(QString str, uint nb_pages, uint page_size, uint nb_frames, uint first_frame):
     TObject(str),mNbPages(nb_pages),mPageSize(page_size),mNbFrames(nb_frames),firstFrame(first_frame)/*,
-                      mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
-                      dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
+                                mRdNumberDistribution(uniform_int_distribution<int>(0,nb_frames-1)),
+                                dice(std::bind ( mRdNumberDistribution, mRdNumberGenerator ))*/
 {
     cout<<"Virtual Memory Initialization"<<endl;
 
@@ -117,6 +121,7 @@ uint VirtualMemoryManager::fetchPage(uint page_number)
     // Si la page se trouve dans le TLB
     if (mTLB->findPage(page_number_int, frame_number)) {
         TLBHIT += 1;
+        _usageFrequency[frame_number]++;
         return (uint) frame_number;
     }
 
@@ -124,9 +129,10 @@ uint VirtualMemoryManager::fetchPage(uint page_number)
     else if (mPageTable->frameIndex(page_number, frame_number)) {
         TLBMISS += 1;
         PAGEFOUND += 1;
+        _usageFrequency[frame_number]++;
 
         // update de la TLB
-        mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
+        mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number), fifo);
         return (uint) frame_number;
     }
 
@@ -137,19 +143,38 @@ uint VirtualMemoryManager::fetchPage(uint page_number)
 
         // insertion de la page dans une frame libre
         frame_number = mPhysicalMemory->insertFrameInNextFreeSpace(page_number, mHardDrive->read(page_number));
+        _usageFrequency[frame_number] = 1;
 
         // update de la TLB et de la PageTable
-        mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
+        mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number), fifo);
         mPageTable->insertPage(page_number, Page("new page", page_number_int, mPageSize, frame_number, true));
 
         return frame_number;
     }
 
-    // Si la page n'est pas chargee et que la memoire physique est pleine,
-    // on enleve une frame de la memoire pour faire de la place selon une file FIFO
+    // Si la page n'est pas chargee et que la memoire physique est pleine
     TLBMISS += 1;
     PAGEFAULT += 1;
-    frame_number = firstFrame % mNbFrames;
+
+    // Si la strategie de remplacement est FIFO, on enleve une frame de la memoire pour faire de la place
+    if (fifo == true) {
+        frame_number = firstFrame % mNbFrames;
+        firstFrame += 1;
+    }
+
+    // Si la strategie de remplacement est Least Frequently Used
+    if (fifo == false) {
+        int min = _usageFrequency[0];
+
+        for (int i = 1 ; i < (int) mNbFrames; i++){
+            if (min > _usageFrequency[i]) {
+                frame_number = i;
+                min = _usageFrequency[i];
+            }
+        }
+
+        _usageFrequency[frame_number] = 1;
+    }
 
     // invalidation dans le PageTable de la page associee au frame enleve
     mPageTable->setInvalid(mPhysicalMemory->pageNumber(frame_number));
@@ -158,10 +183,9 @@ uint VirtualMemoryManager::fetchPage(uint page_number)
     mPhysicalMemory->insertFrame((uint) frame_number, page_number, mHardDrive->read(page_number));
 
     // update de la TLB et de la PageTable
-    mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number));
+    mTLB->addTLBEntry(TLB::TLB_entry(page_number_int, frame_number), fifo);
     mPageTable->insertPage(page_number, Page("new page", page_number_int, mPageSize, frame_number, true));
 
-    firstFrame += 1;
     return frame_number;
 
     //TP2_IFT2245_END_TO_DO

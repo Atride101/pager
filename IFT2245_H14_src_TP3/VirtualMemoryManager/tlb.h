@@ -28,7 +28,7 @@ public:
      * @brief addTLBEntry : add an entry to the TLB.
      * @param new_tlb_entry
      */
-    void addTLBEntry(TLB_entry new_tlb_entry);
+    void addTLBEntry(TLB_entry new_tlb_entry, bool fifo);
 
     //TP2_IFT2245_TO_DO
     /**
@@ -54,6 +54,7 @@ private:
 
     TLB_entry _TLBArray[16];
     int _previousEntry;
+    int _usageFrequency[16];
 };
 
 #endif // TLB_H
